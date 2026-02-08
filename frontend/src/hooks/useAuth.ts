@@ -1,79 +1,41 @@
-import { useMsal } from "@azure/msal-react";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
-import { tokenRequest } from "../config/authConfig";
 import { useCallback, useMemo } from "react";
 
 /**
- * Authentication hook for MSAL-based authentication.
- * Provides token acquisition and authentication status.
+ * Authentication hook that fetches tokens from backend.
+ * Backend handles all Azure authentication using service principal credentials.
  * 
- * @returns Object with getAccessToken function, authentication status, and user info
- * 
- * @example
- * ```tsx
- * function ProtectedComponent() {
- *   const { getAccessToken, isAuthenticated, user } = useAuth();
- *   
- *   useEffect(() => {
- *     const fetchData = async () => {
- *       const token = await getAccessToken();
- *       if (token) {
- *         // Make authenticated API call
- *       }
- *     };
- *     fetchData();
- *   }, [getAccessToken]);
- *   
- *   if (!isAuthenticated) return <div>Please sign in</div>;
- *   return <div>Welcome, {user?.name}</div>;
- * }
- * ```
+ * @returns Object with getAccessToken function and authentication status
  */
 export const useAuth = () => {
-  const { instance, accounts } = useMsal();
-
   const getAccessToken = useCallback(async (): Promise<string | null> => {
-    if (accounts.length === 0) {
-      return null;
-    }
-
-    const request = {
-      ...tokenRequest,
-      account: accounts[0],
-    };
-
     try {
-      // Try silent token acquisition first (uses cached token if valid)
-      const response = await instance.acquireTokenSilent(request);
-      return response.accessToken;
-    } catch (error) {
-      if (error instanceof InteractionRequiredAuthError) {
-        // Fallback to interactive login if silent fails
-        console.warn(
-          "Silent token acquisition failed, prompting for interaction"
-        );
-        try {
-          const response = await instance.acquireTokenPopup(request);
-          return response.accessToken;
-        } catch (popupError) {
-          console.error("Popup login failed:", popupError);
-          return null;
-        }
+      const response = await fetch("/api/auth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        console.error(`Token request failed: ${response.status}`);
+        return null;
       }
+
+      const data = await response.json();
+      return data.accessToken || null;
+    } catch (error) {
       console.error("Token acquisition error:", error);
       return null;
     }
-  }, [instance, accounts]);
+  }, []);
 
-  // Memoize computed values
-  const isAuthenticated = useMemo(
-    () => accounts.length > 0,
-    [accounts.length]
-  );
+  // Always authenticated in development mode (backend manages credentials)
+  const isAuthenticated = useMemo(() => true, []);
 
   const user = useMemo(
-    () => accounts[0],
-    [accounts]
+    () => ({
+      displayName: "Service Principal",
+      name: "Service Principal",
+    }),
+    []
   );
 
   return useMemo(

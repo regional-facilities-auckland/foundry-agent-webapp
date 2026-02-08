@@ -1,12 +1,20 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using WebApp.Api.Models;
 using WebApp.Api.Services;
 using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 // Load .env file for local development BEFORE building the configuration
 // In production (Docker), Container Apps injects environment variables directly
-var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env.local");
+if (!File.Exists(envFilePath))
+{
+    envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+}
+
 if (File.Exists(envFilePath))
 {
     foreach (var line in File.ReadAllLines(envFilePath))
@@ -93,33 +101,52 @@ if (!string.IsNullOrEmpty(tenantId))
 const string RequiredScope = "Chat.ReadWrite";
 const string ScopePolicyName = "RequireChatScope";
 
-// Add Microsoft Identity Web authentication
-// Validates JWT bearer tokens issued for the SPA's delegated scope
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(options =>
-    {
-        builder.Configuration.Bind("AzureAd", options);
-        var configuredClientId = builder.Configuration["AzureAd:ClientId"];
-
-        options.TokenValidationParameters.ValidAudiences = new[]
-        {
-            configuredClientId,
-            $"api://{configuredClientId}"
-        };
-
-        options.TokenValidationParameters.NameClaimType = ClaimTypes.Name;
-        options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
-    }, options => builder.Configuration.Bind("AzureAd", options));
-
-builder.Services.AddAuthorization(options =>
+// Only add JWT authentication in Production mode
+// In Development, we skip authentication to allow service principal-based access
+if (!builder.Environment.IsDevelopment())
 {
-    // Use Microsoft.Identity.Web's built-in scope validation
-    options.AddPolicy(ScopePolicyName, policy =>
+    // Add Microsoft Identity Web authentication
+    // Validates JWT bearer tokens issued for the SPA's delegated scope
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApi(options =>
+        {
+            builder.Configuration.Bind("AzureAd", options);
+            var configuredClientId = builder.Configuration["AzureAd:ClientId"];
+
+            options.TokenValidationParameters.ValidAudiences = new[]
+            {
+                configuredClientId,
+                $"api://{configuredClientId}"
+            };
+
+            options.TokenValidationParameters.NameClaimType = ClaimTypes.Name;
+            options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
+        }, options => builder.Configuration.Bind("AzureAd", options));
+
+    builder.Services.AddAuthorization(options =>
     {
-        policy.RequireAuthenticatedUser();
-        policy.RequireScope(RequiredScope);
+        // Use Microsoft.Identity.Web's built-in scope validation
+        options.AddPolicy(ScopePolicyName, policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireScope(RequiredScope);
+        });
     });
-});
+}
+else
+{
+    // Development mode: Use no-op authentication and authorization
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddScheme<AuthenticationSchemeOptions, NoOpAuthHandler>(JwtBearerDefaults.AuthenticationScheme, _ => { });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy(ScopePolicyName, policy =>
+        {
+            policy.RequireAuthenticatedUser();
+        });
+    });
+}
 
 // Register Azure AI Agent Service for Azure AI Foundry v2 Agents
 // Uses Azure.AI.Projects SDK which works with v2 Agents API (/agents/ endpoint with human-readable IDs).
@@ -151,6 +178,22 @@ app.UseCors("AllowFrontend");
 // Add authentication and authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Token endpoint for frontend (Development mode)
+// Returns token that frontend can use in Authorization header
+if (app.Environment.IsDevelopment())
+{
+    app.MapPost("/api/auth/token", () =>
+    {
+        return Results.Ok(new
+        {
+            accessToken = "dev-sp-token",
+            tokenType = "Bearer",
+            expiresIn = 3600
+        });
+    })
+    .WithName("GetToken");
+}
 
 // Authenticated health endpoint exposes caller identity
 app.MapGet("/api/health", (HttpContext context) =>
@@ -402,3 +445,30 @@ app.MapGet("/api/agent/info", async (
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+/// <summary>
+/// No-op authentication handler for Development mode.
+/// Skips JWT validation and allows all requests to proceed without authentication.
+/// </summary>
+internal class NoOpAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+{
+    public NoOpAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder) : base(options, logger, encoder)
+    {
+    }
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] 
+        { 
+            new Claim(ClaimTypes.NameIdentifier, "dev-user"),
+            new Claim(ClaimTypes.Name, "Developer")
+        }, "Development"));
+
+        var ticket = new AuthenticationTicket(principal, Scheme.Name);
+        return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+}
+

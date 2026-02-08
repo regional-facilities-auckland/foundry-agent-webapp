@@ -67,7 +67,7 @@ if ($webIdentityPrincipalId -and $aiFoundryResourceGroup -and $aiFoundryResource
         --scope $scope 2>$null | ConvertFrom-Json
     
     if ($existingAssignment -and $existingAssignment.Count -gt 0) {
-        Write-Host "[OK] Role assignment already exists" -ForegroundColor Green
+        Write-Host "[OK] Role assignment already exists for web app identity" -ForegroundColor Green
     } else {
         az role assignment create `
             --assignee-object-id $webIdentityPrincipalId `
@@ -76,14 +76,56 @@ if ($webIdentityPrincipalId -and $aiFoundryResourceGroup -and $aiFoundryResource
             --scope $scope | Out-Null
         
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] Role assignment created on AI Foundry resource" -ForegroundColor Green
+            Write-Host "[OK] Role assignment created for web app identity" -ForegroundColor Green
         } else {
             Write-Host "[WARN] Failed to create role assignment - you may need to do this manually" -ForegroundColor Yellow
         }
     }
 } else {
-    Write-Host "[SKIP] AI Foundry role assignment - missing configuration" -ForegroundColor Yellow
+    Write-Host "[SKIP] AI Foundry role assignment for web identity - missing configuration" -ForegroundColor Yellow
     Write-Host "  Set AI_FOUNDRY_RESOURCE_GROUP and AI_FOUNDRY_RESOURCE_NAME environment variables" -ForegroundColor Gray
+}
+
+# Assign Cognitive Services User role to service principal (for local development)
+# The service principal is configured via AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET in .env.local
+$spClientId = azd env get-value AZURE_CLIENT_ID 2>$null
+if ($spClientId -and $aiFoundryResourceGroup -and $aiFoundryResourceName -and $subscriptionId) {
+    Write-Host "Assigning Cognitive Services User role to service principal..." -ForegroundColor Yellow
+    
+    # Resolve the service principal object ID from client ID
+    $spObjectId = az ad sp show --id $spClientId --query id -o tsv 2>$null
+    
+    if ($spObjectId) {
+        $scope = "/subscriptions/$subscriptionId/resourceGroups/$aiFoundryResourceGroup/providers/Microsoft.CognitiveServices/accounts/$aiFoundryResourceName"
+        
+        # Check if role assignment already exists
+        $existingAssignment = az role assignment list `
+            --assignee $spObjectId `
+            --role "Cognitive Services User" `
+            --scope $scope 2>$null | ConvertFrom-Json
+        
+        if ($existingAssignment -and $existingAssignment.Count -gt 0) {
+            Write-Host "[OK] Role assignment already exists for service principal" -ForegroundColor Green
+        } else {
+            az role assignment create `
+                --assignee-object-id $spObjectId `
+                --assignee-principal-type ServicePrincipal `
+                --role "Cognitive Services User" `
+                --scope $scope | Out-Null
+            
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[OK] Role assignment created for service principal" -ForegroundColor Green
+            } else {
+                Write-Host "[WARN] Failed to create role assignment for service principal - you may need to do this manually" -ForegroundColor Yellow
+            }
+        }
+    } else {
+        Write-Host "[WARN] Service principal $spClientId not found in Entra ID" -ForegroundColor Yellow
+    }
+} else {
+    if (-not $spClientId) {
+        Write-Host "[SKIP] Service principal role assignment - AZURE_CLIENT_ID not set" -ForegroundColor Gray
+    }
 }
 
 # Open browser

@@ -40,13 +40,13 @@ Write-Host "[OK] Configuration validated" -ForegroundColor Green
 
 # Kill existing processes on our ports
 foreach ($port in @(8080, 5173)) {
-    if ($IsWindows) {
+    # if ($IsWindows) {
         $processIds = netstat -ano | Select-String ":$port\s.*LISTENING" | ForEach-Object {
             if ($_ -match '\s(\d+)\s*$') { [int]$Matches[1] }
         }
-    } else {
-        $processIds = lsof -i ":$port" -sTCP:LISTEN -t 2>$null | Where-Object { $_ -match '^\d+$' }
-    }
+    # } else {
+    #     $processIds = lsof -i ":$port" -sTCP:LISTEN -t 2>$null | Where-Object { $_ -match '^\d+$' }
+    # }
     foreach ($processId in $processIds) {
         Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
         Write-Host "Stopped process $processId on port $port" -ForegroundColor Yellow
