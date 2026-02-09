@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tātaki Chat - Brand Aligned</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00A4AD",
+                        "dark-navy": "#1D2B44",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0f172a",
+                        "sidebar-light": "#1D2B44",
+                        "sidebar-dark": "#0a111f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'Inter', sans-serif;
+            }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .main-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+        }
+        .dark .main-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex h-screen w-full overflow-hidden">
+<aside class="w-[280px] flex-shrink-0 bg-sidebar-light dark:bg-sidebar-dark flex flex-col text-white">
+<div class="p-4">
+<button class="w-full flex items-center justify-between gap-3 px-3 py-3 bg-white/10 border border-white/10 rounded-lg hover:bg-white/20 transition-colors shadow-sm group">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</div>
+<span class="text-sm font-medium">New Chat</span>
+</div>
+<span class="material-symbols-outlined text-white/40 group-hover:text-white/80 text-[20px]">edit_square</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar px-4 space-y-6">
+<div>
+<h3 class="px-3 text-[11px] font-bold text-white/40 uppercase tracking-wider mb-2">Today</h3>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-white font-medium text-sm" href="#">
+<span class="material-symbols-outlined text-[18px] text-primary">chat_bubble</span>
+<span class="truncate">Auckland Events Strategy</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white/80 text-sm transition-colors group" href="#">
+<span class="material-symbols-outlined text-[18px] text-white/40">chat_bubble</span>
+<span class="truncate">Investment Portfolio Review</span>
+</a>
+</div>
+</div>
+<div>
+<h3 class="px-3 text-[11px] font-bold text-white/40 uppercase tracking-wider mb-2">Previous 7 Days</h3>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white/80 text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-white/40">chat_bubble</span>
+<span class="truncate">Tourism Growth 2024</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white/80 text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-white/40">chat_bubble</span>
+<span class="truncate">Venue Hire Protocols</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white/80 text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-white/40">chat_bubble</span>
+<span class="truncate">Regional Development Plan</span>
+</a>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-white/10 mt-auto">
+<button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">
+<div class="w-8 h-8 rounded-full bg-slate-300 flex-shrink-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCU5wC_yj7codZ9eo-egNLKbQfvzqXt4Pje83HANeuHFaLXcd1mrdDQBEcl0bWM7bQ-1lKxOodduz_qQpOk7m36zWrN9t0MJvbjJkGyZI22Y5XEHJ8r1st1FNCdUhPc3Gs5LMTs9weLnNqzM2uK6_7KrGOPlAV278Xy26U7x7LV_6-jSPBBf4sJz86KgrIadho0ixMrcUR6uzDIhiiFbwdQiWfyPpCkp4M5-XvPXQ16DPIy6i01XmPt1eMMbavwIj2-dPceDAswm4ud')"></div>
+<div class="flex-1 text-left">
+<p class="text-sm font-medium truncate">Alex Thompson</p>
+</div>
+<span class="material-symbols-outlined text-white/40">settings</span>
+</button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col relative bg-background-light dark:bg-background-dark">
+<header class="h-14 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<div class="size-6 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-sm font-semibold tracking-tight uppercase text-dark-navy dark:text-white">Tātaki Auckland Unlimited</h2>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto main-scrollbar flex flex-col items-center">
+<div class="w-full max-w-[800px] flex flex-col pt-8 pb-32">
+<div class="px-6 py-10 flex flex-col items-center text-center">
+<div class="size-16 mb-6 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h1 class="text-3xl font-bold mb-4 tracking-tight text-dark-navy dark:text-white">How can Tātaki help you today?</h1>
+<p class="text-slate-600 dark:text-slate-400 max-w-lg mb-8">
+                        I'm your assistant for Auckland's economic and cultural agency. Whether you're planning an event, looking for business support, or exploring tourism insights, I'm here to assist.
+                    </p>
+<div class="grid grid-cols-2 gap-3 w-full max-w-xl">
+<button class="p-4 border border-slate-200 dark:border-slate-800 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
+<span class="material-symbols-outlined text-primary mb-2 block">event_note</span>
+<h4 class="text-sm font-semibold mb-1 text-dark-navy dark:text-white">Auckland Events</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Plan a major event in the city</p>
+</button>
+<button class="p-4 border border-slate-200 dark:border-slate-800 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
+<span class="material-symbols-outlined text-primary mb-2 block">corporate_fare</span>
+<h4 class="text-sm font-semibold mb-1 text-dark-navy dark:text-white">Business Support</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Grow your enterprise locally</p>
+</button>
+<button class="p-4 border border-slate-200 dark:border-slate-800 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
+<span class="material-symbols-outlined text-primary mb-2 block">insights</span>
+<h4 class="text-sm font-semibold mb-1 text-dark-navy dark:text-white">Tourism Insights</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Market data and visitor trends</p>
+</button>
+<button class="p-4 border border-slate-200 dark:border-slate-800 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
+<span class="material-symbols-outlined text-primary mb-2 block">movie</span>
+<h4 class="text-sm font-semibold mb-1 text-dark-navy dark:text-white">Screen Auckland</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Permits and production support</p>
+</button>
+</div>
+</div>
+<div class="px-6 py-8 flex items-start gap-6">
+<div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px] text-slate-500">person</span>
+</div>
+<div class="flex-1 pt-1 leading-relaxed">
+<p class="text-[15px] text-dark-navy dark:text-slate-200">Could you help me outline the strategy for the 2024 Auckland Summer Festival? I'm particularly interested in how we can align with sustainable tourism goals.</p>
+</div>
+</div>
+<div class="px-6 py-8 flex items-start gap-6 bg-slate-50 dark:bg-slate-900/50">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
+<div class="size-4 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</div>
+<div class="flex-1 pt-1 space-y-4 leading-relaxed">
+<p class="text-[15px] text-dark-navy dark:text-slate-200">Kia ora! I can certainly help you with that. Developing a strategy for the **Auckland Summer Festival** that aligns with sustainable tourism involves three key pillars:</p>
+<ul class="list-disc pl-5 text-[15px] space-y-2 text-dark-navy dark:text-slate-200">
+<li><strong>Low-Impact Logistics:</strong> Prioritizing venues with robust public transport links and implementing a zero-waste policy for all vendors.</li>
+<li><strong>Local Sourcing:</strong> Highlighting Auckland-based artisans and food producers to reduce the festival's carbon footprint.</li>
+<li><strong>Community Integration:</strong> Ensuring event benefits reach local mana whenua and diverse community groups through inclusive programming.</li>
+</ul>
+<p class="text-[15px] text-dark-navy dark:text-slate-200">Would you like to dive deeper into any of these pillars, or shall we look at the specific 2024 regional targets first?</p>
+<div class="flex items-center gap-3 pt-2">
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+</button>
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined text-[18px]">thumb_down</span>
+</button>
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 pb-8 flex justify-center bg-gradient-to-t from-background-light dark:from-background-dark via-background-light/95 dark:via-background-dark/95 to-transparent">
+<div class="w-full max-w-[800px] flex flex-col gap-2">
+<div class="relative group">
+<textarea class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-14 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-lg resize-none main-scrollbar text-[15px] text-dark-navy dark:text-white" placeholder="Message Tātaki Assistant..." rows="1"></textarea>
+<div class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+</div>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+<button class="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">arrow_upward</span>
+</button>
+</div>
+</div>
+<p class="text-center text-[11px] text-slate-400 dark:text-slate-500">
+                    Tātaki Assistant can make mistakes. Consider checking important information.
+                </p>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

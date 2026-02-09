@@ -1,6 +1,7 @@
 import { Spinner } from '@fluentui/react-components';
 import { ErrorBoundary } from "./components/core/ErrorBoundary";
 import { AgentPreview } from "./components/AgentPreview";
+import { Navbar } from './components/core/Navbar';
 import { useState, useEffect, useCallback } from "react";
 import type { IAgentMetadata } from "./types/chat";
 import "./App.css";
@@ -67,13 +68,17 @@ function App() {
         </div>
       ) : agentMetadata ? (
         <div className="app-container">
-          <AgentPreview 
-            agentId={agentMetadata.id}
-            agentName={agentMetadata.name}
-            agentDescription={agentMetadata.description || undefined}
-            agentLogo={agentMetadata.metadata?.logo}
-            starterPrompts={agentMetadata.starterPrompts || undefined}
-          />
+          <Navbar />
+
+          <div className="main-content">
+            <AgentPreview 
+              agentId={agentMetadata.id}
+              agentName={agentMetadata.name}
+              agentDescription={agentMetadata.description || undefined}
+              agentLogo={agentMetadata.metadata?.logo}
+              starterPrompts={agentMetadata.starterPrompts || undefined}
+            />
+          </div>
         </div>
       ) : null}
     </ErrorBoundary>

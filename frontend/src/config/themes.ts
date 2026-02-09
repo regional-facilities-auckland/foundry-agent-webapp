@@ -5,6 +5,27 @@ import {
   type Theme,
 } from "@fluentui/react-components";
 
+// // Azure-inspired brand colors with proper progression
+// // Based on Azure official color palette for better brand consistency
+// const brandColors: BrandVariants = {
+//   10: "#010306",
+//   20: "#071926",
+//   30: "#002A41",
+//   40: "#003653",
+//   50: "#004365",
+//   60: "#005078",
+//   70: "#005E8B",
+//   80: "#007BB4",
+//   90: "#0098D4",  // Proper progression (sample had duplicate at 80)
+//   100: "#008AC9",
+//   110: "#0099DE",
+//   120: "#00A8F4",
+//   130: "#3FB6FF",
+//   140: "#73C3FF",
+//   150: "#98D0FF",
+//   160: "#B8DEFF",
+// };
+
 // Azure-inspired brand colors with proper progression
 // Based on Azure official color palette for better brand consistency
 const brandColors: BrandVariants = {
@@ -15,7 +36,7 @@ const brandColors: BrandVariants = {
   50: "#004365",
   60: "#005078",
   70: "#005E8B",
-  80: "#007BB4",
+  80: "#00A4AD", // Icon
   90: "#0098D4",  // Proper progression (sample had duplicate at 80)
   100: "#008AC9",
   110: "#0099DE",
