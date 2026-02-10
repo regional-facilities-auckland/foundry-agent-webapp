@@ -9,7 +9,7 @@ interface TatakiLogoProps {
 
 export function TatakiLogo({
   width = 24,
-  height = 24,
+  height = undefined,
   className,
 }: TatakiLogoProps): ReactNode {
   return <TatakiAucklandUnlimitedLogo width={width} height={height} className={className} />;

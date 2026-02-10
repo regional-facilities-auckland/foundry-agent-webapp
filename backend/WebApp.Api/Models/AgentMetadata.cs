@@ -9,6 +9,7 @@ public record AgentMetadataResponse
     public required string Object { get; init; } = "agent";
     public required long CreatedAt { get; init; }
     public required string Name { get; init; }
+    public required string Version { get; init; }
     public string? Description { get; init; }
     public required string Model { get; init; }
     public string? Instructions { get; init; }

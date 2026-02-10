@@ -59,6 +59,7 @@ export interface IAgentMetadata {
   object: string;
   createdAt: number;
   name: string;
+  version: string;
   description?: string | null;
   model: string;
   instructions?: string | null;

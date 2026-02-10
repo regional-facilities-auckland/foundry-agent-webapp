@@ -73,8 +73,8 @@ function App() {
           <div className="main-content">
             <AgentPreview 
               agentId={agentMetadata.id}
-              agentName={agentMetadata.name}
-              agentDescription={agentMetadata.description || undefined}
+              agentName={agentMetadata.metadata?.welcomeMessage || agentMetadata.name}
+              agentDescription={agentMetadata.metadata?.description || agentMetadata.description || undefined}
               agentLogo={agentMetadata.metadata?.logo}
               starterPrompts={agentMetadata.starterPrompts || undefined}
             />

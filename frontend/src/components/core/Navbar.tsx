@@ -17,7 +17,7 @@ export class Navbar extends Component<NavbarProps> {
     return <header className={styles.navbarHeader}>
       <div className={styles.navbarHeaderLeft}>
         <div className={styles.navbarLogo} aria-hidden>
-          <TatakiLogo width={150} height={"auto"}/>
+          <TatakiLogo width={150} />
         </div>
         <h2 className={styles.navbarTitle}>Māori Outcomes</h2>
       </div>
