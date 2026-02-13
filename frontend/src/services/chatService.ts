@@ -34,6 +34,7 @@ import { parseSseLine, splitSseBuffer } from '../utils/sseParser';
  *   'Analyze this image',
  *   currentThreadId,
  *   [imageFile]
+ *   'agent-id'
  * );
  * ```
  */
@@ -183,7 +184,8 @@ export class ChatService {
    * 
    * @param messageText - The user's message text
    * @param currentConversationId - Current conversation ID (null for new conversations)
-   * @param files - Optional array of files to attach (images and documents)
+  * @param files - Optional array of files to attach (images and documents)
+  * @param agentId - Optional agent id to route the request
    * @throws {Error} If authentication fails or API request fails
    * 
    * @remarks
@@ -193,7 +195,8 @@ export class ChatService {
   async sendMessage(
     messageText: string,
     currentConversationId: string | null,
-    files?: File[]
+    files?: File[],
+    agentId?: string
   ): Promise<void> {
     if (this.currentStreamAbort) {
       this.streamCancelled = true;
@@ -241,7 +244,7 @@ export class ChatService {
       const response = await retryWithBackoff(
         async () =>
           this.initiateStream(
-            `${this.apiUrl}/chat/stream`,
+            this.buildStreamUrl(agentId),
             token,
             requestBody,
             this.currentStreamAbort!.signal
@@ -267,7 +270,7 @@ export class ChatService {
         : createAppError(
             error,
             getErrorCodeFromMessage(error),
-            () => this.sendMessage(messageText, currentConversationId, files)
+            () => this.sendMessage(messageText, currentConversationId, files, agentId)
           );
 
       this.dispatch({ type: 'CHAT_ERROR', error: appError });
@@ -435,13 +438,15 @@ export class ChatService {
    * @param approvalRequestId - ID of the approval request
    * @param approved - Whether the tool call was approved
    * @param previousResponseId - Response ID to continue from
-   * @param conversationId - Current conversation ID
+  * @param conversationId - Current conversation ID
+  * @param agentId - Optional agent id to route the request
    */
   async sendMcpApproval(
     approvalRequestId: string,
     approved: boolean,
     previousResponseId: string,
-    conversationId: string
+    conversationId: string,
+    agentId?: string
   ): Promise<void> {
     try {
       const token = await this.ensureAuthToken();
@@ -470,7 +475,7 @@ export class ChatService {
       const response = await retryWithBackoff(
         async () =>
           this.initiateStream(
-            `${this.apiUrl}/chat/stream`,
+            this.buildStreamUrl(agentId),
             token,
             requestBody,
             this.currentStreamAbort!.signal
@@ -523,5 +528,10 @@ export class ChatService {
       this.currentStreamAbort.abort();
       this.dispatch({ type: 'CHAT_CANCEL_STREAM' });
     }
+  }
+
+  private buildStreamUrl(agentId?: string): string {
+    if (!agentId) return `${this.apiUrl}/chat/stream`;
+    return `${this.apiUrl}/chat/stream?agentId=${encodeURIComponent(agentId)}`;
   }
 }

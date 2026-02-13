@@ -8,19 +8,134 @@
   border-bottom: 1px solid rgba(0,0,0,0.06);
   background: rgba(255,255,255,0.9);
   backdrop-filter: blur(6px);
+  position: relative;
+  z-index: 100;
+  overflow: visible;
 }
 .navbarHeaderLeft {
   display: flex;
   align-items: center;
   gap: 12px;
+  overflow: visible;
 }
 .navbarLogo svg {
 }
-.navbarTitle {
+.navbarTitleWrap {
+  position: relative;
+  z-index: 1001;
+  overflow: visible;
+}
+
+/* Material Design Button Trigger */
+.navbarTitleButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.4px;
   margin: 0;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  border-radius: 4px;
+  transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.navbarTitleButton:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.navbarTitleButton:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.navbarTitleButton:focus {
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.navbarTitleText {
+  user-select: none;
+}
+
+.navbarTitleChevron {
+  width: 20px;
+  height: 20px;
+  color: rgba(0, 0, 0, 0.54);
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.navbarTitleChevronOpen {
+  transform: rotate(180deg);
+}
+
+/* Material Design Dropdown Menu */
+.navbarDropdownMenu {
+  position: fixed;
+  min-width: 200px;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 
+    0px 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0px 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+  z-index: 1002;
+  overflow: hidden;
+  animation: dropdownFadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top left;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.navbarDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+  color: rgba(0, 0, 0, 0.87);
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.navbarDropdownItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.navbarDropdownItem:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.navbarDropdownItemActive {
+  background-color: rgba(0, 164, 173, 0.08);
+  color: rgba(0, 164, 173, 1);
+  font-weight: 500;
+}
+
+.navbarDropdownItemActive:hover {
+  background-color: rgba(0, 164, 173, 0.12);
 }
 .navbarHeader-Right {
   display: flex;

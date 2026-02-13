@@ -216,6 +216,8 @@ app.MapGet("/api/health", (HttpContext context) =>
 // Supports MCP tool approval flow with previousResponseId and mcpApproval parameters
 app.MapPost("/api/chat/stream", async (
     ChatRequest request,
+    string? agentId,
+    IConfiguration configuration,
     AgentFrameworkService agentService,
     HttpContext httpContext,
     IHostEnvironment environment,
@@ -233,8 +235,10 @@ app.MapPost("/api/chat/stream", async (
         await WriteConversationIdEvent(httpContext.Response, conversationId, cancellationToken);
 
         var startTime = DateTime.UtcNow;
+        var resolvedAgentId = ResolveAgentId(configuration, agentId);
 
         await foreach (var chunk in agentService.StreamMessageAsync(
+            resolvedAgentId,
             conversationId,
             request.Message,
             request.ImageDataUris,
@@ -378,16 +382,86 @@ static async Task WriteErrorEvent(HttpResponse response, string message, Cancell
     await response.Body.FlushAsync(ct);
 }
 
+static string ResolveAgentId(IConfiguration configuration, string? agentId)
+{
+    if (!string.IsNullOrWhiteSpace(agentId))
+        return agentId;
+
+    var configuredAgentId = configuration["AI_AGENT_ID"];
+    if (string.IsNullOrWhiteSpace(configuredAgentId))
+        throw new InvalidOperationException("AI_AGENT_ID is not configured and no agentId was provided.");
+
+    return configuredAgentId;
+}
+
 // Get agent metadata (name, description, model, metadata)
 // Used by frontend to display agent information in the UI
-app.MapGet("/api/agent", async (
+app.MapGet("/api/agents", async (
+    IConfiguration configuration,
     AgentFrameworkService agentService,
     IHostEnvironment environment,
     CancellationToken cancellationToken) =>
 {
     try
     {
-        var metadata = await agentService.GetAgentMetadataAsync(cancellationToken);
+        var mappings = configuration
+            .GetSection("AgentMappings")
+            .Get<List<AgentMapping>>()
+            ?? new List<AgentMapping>();
+
+        var hydratedMappings = new List<AgentMapping>(mappings.Count);
+        foreach (var mapping in mappings)
+        {
+            var resolvedLabel = mapping.Label;
+            if (string.IsNullOrWhiteSpace(resolvedLabel))
+            {
+                try
+                {
+                    var metadata = await agentService.GetAgentMetadataAsync(mapping.AgentId, cancellationToken);
+                    resolvedLabel = metadata.Name;
+                }
+                catch
+                {
+                    resolvedLabel = mapping.AgentId;
+                }
+            }
+
+            hydratedMappings.Add(mapping with { Label = resolvedLabel });
+        }
+
+        return Results.Ok(hydratedMappings);
+    }
+    catch (Exception ex)
+    {
+        var errorResponse = ErrorResponseFactory.CreateFromException(
+            ex,
+            500,
+            environment.IsDevelopment());
+
+        return Results.Problem(
+            title: errorResponse.Title,
+            detail: errorResponse.Detail,
+            statusCode: errorResponse.Status,
+            extensions: errorResponse.Extensions
+        );
+    }
+})
+.RequireAuthorization(ScopePolicyName)
+.WithName("GetAgents");
+
+// Get agent metadata (name, description, model, metadata)
+// Used by frontend to display agent information in the UI
+app.MapGet("/api/agent", async (
+    string? agentId,
+    IConfiguration configuration,
+    AgentFrameworkService agentService,
+    IHostEnvironment environment,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var resolvedAgentId = ResolveAgentId(configuration, agentId);
+        var metadata = await agentService.GetAgentMetadataAsync(resolvedAgentId, cancellationToken);
         return Results.Ok(metadata);
     }
     catch (Exception ex)
@@ -410,13 +484,16 @@ app.MapGet("/api/agent", async (
 
 // Get agent info (for debugging)
 app.MapGet("/api/agent/info", async (
+    string? agentId,
+    IConfiguration configuration,
     AgentFrameworkService agentService,
     IHostEnvironment environment,
     CancellationToken cancellationToken) =>
 {
     try
     {
-        var agentInfo = await agentService.GetAgentInfoAsync(cancellationToken);
+        var resolvedAgentId = ResolveAgentId(configuration, agentId);
+        var agentInfo = await agentService.GetAgentInfoAsync(resolvedAgentId, cancellationToken);
         return Results.Ok(new
         {
             info = agentInfo,

@@ -23,10 +23,9 @@ namespace WebApp.Api.Services;
 public class AgentFrameworkService : IDisposable
 {
     private readonly AIProjectClient _projectClient;
-    private readonly string _agentId;
     private readonly ILogger<AgentFrameworkService> _logger;
-    private ChatClientAgent? _cachedAgent;
-    private AgentMetadataResponse? _cachedMetadata;
+    private readonly Dictionary<string, ChatClientAgent> _agentCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AgentMetadataResponse> _metadataCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly SemaphoreSlim _agentLock = new(1, 1);
     private bool _disposed = false;
     private ResponseTokenUsage? _lastUsage;
@@ -40,13 +39,9 @@ public class AgentFrameworkService : IDisposable
         var endpoint = configuration["AI_AGENT_ENDPOINT"]
             ?? throw new InvalidOperationException("AI_AGENT_ENDPOINT is not configured");
 
-        _agentId = configuration["AI_AGENT_ID"]
-            ?? throw new InvalidOperationException("AI_AGENT_ID is not configured");
-
         _logger.LogDebug(
-            "Initializing AgentFrameworkService: endpoint={Endpoint}, agentId={AgentId}", 
-            endpoint, 
-            _agentId);
+            "Initializing AgentFrameworkService: endpoint={Endpoint}",
+            endpoint);
 
         TokenCredential credential;
         var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Production";
@@ -87,33 +82,38 @@ public class AgentFrameworkService : IDisposable
     /// Get agent via Microsoft Agent Framework extension methods.
     /// Uses AIProjectClient.GetAIAgentAsync() which wraps v2 Agents API.
     /// </summary>
-    private async Task<ChatClientAgent> GetAgentAsync(CancellationToken cancellationToken = default)
+    private async Task<ChatClientAgent> GetAgentAsync(
+        string agentId,
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_cachedAgent != null)
-            return _cachedAgent;
+        if (string.IsNullOrWhiteSpace(agentId))
+            throw new ArgumentException("Agent id must be provided", nameof(agentId));
+
+        if (_agentCache.TryGetValue(agentId, out var cachedAgent))
+            return cachedAgent;
 
         await _agentLock.WaitAsync(cancellationToken);
         try
         {
-            if (_cachedAgent != null)
-                return _cachedAgent;
+            if (_agentCache.TryGetValue(agentId, out cachedAgent))
+                return cachedAgent;
 
-            _logger.LogInformation("Loading agent via Agent Framework: {AgentId}", _agentId);
+            _logger.LogInformation("Loading agent via Agent Framework: {AgentId}", agentId);
 
             // Use Microsoft.Agents.AI.AzureAI extension method - handles v2 Agents API internally
-            _cachedAgent = await _projectClient.GetAIAgentAsync(
-                name: _agentId,
+            var loadedAgent = await _projectClient.GetAIAgentAsync(
+                name: agentId,
                 cancellationToken: cancellationToken);
 
             // Get the AgentVersion from the cached agent for metadata
-            var agentVersion = _cachedAgent.GetService<AgentVersion>();
+            var agentVersion = loadedAgent.GetService<AgentVersion>();
             var definition = agentVersion?.Definition as PromptAgentDefinition;
             
             _logger.LogInformation(
                 "Loaded agent: name={AgentName}, model={Model}, version={Version}", 
-                agentVersion?.Name ?? _agentId,
+                agentVersion?.Name ?? agentId,
                 definition?.Model ?? "unknown",
                 agentVersion?.Version ?? "latest");
 
@@ -125,11 +125,12 @@ public class AgentFrameworkService : IDisposable
                     string.Join(", ", definition.StructuredInputs.Keys));
             }
 
-            return _cachedAgent;
+            _agentCache[agentId] = loadedAgent;
+            return loadedAgent;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load agent: {AgentId}", _agentId);
+            _logger.LogError(ex, "Failed to load agent: {AgentId}", agentId);
             throw;
         }
         finally
@@ -150,6 +151,7 @@ public class AgentFrameworkService : IDisposable
     /// The IChatClient abstraction doesn't expose these specialized response types.
     /// </remarks>
     public async IAsyncEnumerable<StreamChunk> StreamMessageAsync(
+        string agentId,
         string conversationId,
         string message,
         List<string>? imageDataUris = null,
@@ -160,8 +162,12 @@ public class AgentFrameworkService : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        if (string.IsNullOrWhiteSpace(agentId))
+            throw new ArgumentException("Agent id must be provided", nameof(agentId));
+
         _logger.LogInformation(
-            "Streaming message to conversation: {ConversationId}, ImageCount: {ImageCount}, FileCount: {FileCount}, HasApproval: {HasApproval}",
+            "Streaming message to agent: {AgentId}, conversation: {ConversationId}, ImageCount: {ImageCount}, FileCount: {FileCount}, HasApproval: {HasApproval}",
+            agentId,
             conversationId,
             imageDataUris?.Count ?? 0,
             fileDataUris?.Count ?? 0,
@@ -170,7 +176,7 @@ public class AgentFrameworkService : IDisposable
         // Get ProjectResponsesClient for the agent and conversation
         ProjectResponsesClient responsesClient
             = _projectClient.OpenAI.GetProjectResponsesClientForAgent(
-                new AgentReference(_agentId), 
+                new AgentReference(agentId), 
                 conversationId);
 
         CreateResponseOptions options = new() { StreamingEnabled = true };
@@ -273,7 +279,7 @@ public class AgentFrameworkService : IDisposable
             }
         }
 
-        _logger.LogInformation("Completed streaming for conversation: {ConversationId}", conversationId);
+        _logger.LogInformation("Completed streaming for agent: {AgentId}, conversation: {ConversationId}", agentId, conversationId);
     }
 
     /// <summary>
@@ -639,17 +645,28 @@ public class AgentFrameworkService : IDisposable
     /// Get the agent metadata (name, description, etc.) for display in UI.
     /// Uses Agent Framework's ChatClientAgent which provides access to AgentVersion.
     /// </summary>
-    public async Task<AgentMetadataResponse> GetAgentMetadataAsync(CancellationToken cancellationToken = default)
+    public async Task<AgentMetadataResponse> GetAgentMetadataAsync(
+        string agentId,
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Ensure agent is loaded via Agent Framework
-        var agent = await GetAgentAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(agentId))
+            throw new ArgumentException("Agent id must be provided", nameof(agentId));
 
-        if (_cachedMetadata != null)
-            return _cachedMetadata;
+        if (_metadataCache.TryGetValue(agentId, out var cachedMetadata))
+            return cachedMetadata;
 
-        // Get AgentVersion from the ChatClientAgent's services
+        _logger.LogInformation("Loading agent metadata for requested id: {AgentId}", agentId);
+        var agent = await GetAgentAsync(agentId, cancellationToken);
+        var metadataResponse = BuildAgentMetadataResponse(agent, agentId);
+
+        _metadataCache[agentId] = metadataResponse;
+        return metadataResponse;
+    }
+
+    private AgentMetadataResponse BuildAgentMetadataResponse(ChatClientAgent agent, string agentId)
+    {
         var agentVersion = agent.GetService<AgentVersion>();
         if (agentVersion == null)
             throw new InvalidOperationException("Agent version not available from ChatClientAgent");
@@ -657,18 +674,16 @@ public class AgentFrameworkService : IDisposable
         var definition = agentVersion.Definition as PromptAgentDefinition;
         var metadata = agentVersion.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        // Log metadata keys at debug level for troubleshooting
         if (metadata != null && metadata.Count > 0)
         {
             _logger.LogDebug("Agent metadata keys: {Keys}", string.Join(", ", metadata.Keys));
         }
 
-        // Parse starter prompts from metadata
         List<string>? starterPrompts = ParseStarterPrompts(metadata);
 
-        _cachedMetadata = new AgentMetadataResponse
+        return new AgentMetadataResponse
         {
-            Id = _agentId,
+            Id = agentId,
             Object = "agent",
             CreatedAt = agentVersion.CreatedAt.ToUnixTimeSeconds(),
             Name = agentVersion.Name ?? "AI Assistant",
@@ -679,8 +694,6 @@ public class AgentFrameworkService : IDisposable
             Metadata = metadata,
             StarterPrompts = starterPrompts
         };
-
-        return _cachedMetadata;
     }
 
     /// <summary>
@@ -719,13 +732,18 @@ public class AgentFrameworkService : IDisposable
     /// <summary>
     /// Get basic agent info string (for debugging).
     /// </summary>
-    public async Task<string> GetAgentInfoAsync(CancellationToken cancellationToken = default)
+    public async Task<string> GetAgentInfoAsync(
+        string agentId,
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var agent = await GetAgentAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(agentId))
+            throw new ArgumentException("Agent id must be provided", nameof(agentId));
+
+        var agent = await GetAgentAsync(agentId, cancellationToken);
         var agentVersion = agent.GetService<AgentVersion>();
-        return agentVersion?.Name ?? _agentId;
+        return agentVersion?.Name ?? agentId;
     }
 
     /// <summary>
@@ -740,6 +758,8 @@ public class AgentFrameworkService : IDisposable
         {
             _disposed = true;
             _agentLock.Dispose();
+            _agentCache.Clear();
+            _metadataCache.Clear();
             _logger.LogDebug("AgentFrameworkService disposed");
         }
     }

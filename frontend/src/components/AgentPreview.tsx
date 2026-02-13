@@ -15,7 +15,7 @@ interface AgentPreviewProps {
   starterPrompts?: string[];
 }
 
-export const AgentPreview: React.FC<AgentPreviewProps> = ({ agentId: _agentId, agentName, agentDescription, agentLogo, starterPrompts }) => {
+export const AgentPreview: React.FC<AgentPreviewProps> = ({ agentId, agentName, agentDescription, agentLogo, starterPrompts }) => {
   const { chat } = useAppState();
   const { dispatch } = useAppContext();
   const { getAccessToken } = useAuth();
@@ -29,7 +29,7 @@ export const AgentPreview: React.FC<AgentPreviewProps> = ({ agentId: _agentId, a
   }, [apiUrl, getAccessToken, dispatch]);
 
   const handleSendMessage = async (text: string, files?: File[]) => {
-    await chatService.sendMessage(text, chat.currentConversationId, files);
+    await chatService.sendMessage(text, chat.currentConversationId, files, agentId);
   };
 
   const handleClearError = () => {
@@ -50,7 +50,7 @@ export const AgentPreview: React.FC<AgentPreviewProps> = ({ agentId: _agentId, a
     previousResponseId: string,
     conversationId: string
   ) => {
-    await chatService.sendMcpApproval(approvalRequestId, approved, previousResponseId, conversationId);
+    await chatService.sendMcpApproval(approvalRequestId, approved, previousResponseId, conversationId, agentId);
   };
 
   return (
