@@ -102,6 +102,36 @@ npm run build      # Production build → dist/
 npm run preview    # Preview production build locally
 ```
 
+## Testing
+
+### Unit tests (Vitest)
+
+```powershell
+npm run test
+```
+
+### End-to-end tests (Playwright)
+
+Install Playwright browser binaries once:
+
+```powershell
+npx playwright install
+```
+
+Run E2E tests:
+
+```powershell
+npm run test:e2e
+```
+
+Run E2E tests in headed mode:
+
+```powershell
+npm run test:e2e:headed
+```
+
+E2E specs live in `frontend/e2e` and mock API routes (`/api/agents`, `/api/agent`, `/api/auth/token`, `/api/chat/stream`) to run deterministically without backend dependencies.
+
 Production builds are created in Docker multi-stage builds and served from ASP.NET Core's `wwwroot`.
 
 ## Key Dependencies

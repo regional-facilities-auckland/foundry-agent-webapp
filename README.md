@@ -172,6 +172,14 @@ azd env set AI_AGENT_ID <agent-name>
 - **C#**: Watch mode - auto-recompiles on save, check terminal for errors
 - **Test at**: http://localhost:5173
 
+### Branch Protection (Recommended)
+
+If you enforce required status checks on pull requests, add this check from GitHub Actions:
+
+- `Frontend Tests / test`
+
+This check comes from `.github/workflows/frontend-tests.yml` and validates frontend unit tests (`npm run test`) plus Playwright E2E tests (`npm run test:e2e`).
+
 ### Deploy
 ```powershell
 # Deploy code changes to Azure
