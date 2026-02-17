@@ -74,7 +74,21 @@ public class AgentFrameworkService : IDisposable
             credential = new ManagedIdentityCredential();
         }
 
-        _projectClient = new AIProjectClient(new Uri(endpoint), credential);
+        var networkTimeoutSeconds = configuration.GetValue<int?>("AI_AGENT_NETWORK_TIMEOUT_SECONDS") ?? 600;
+        if (networkTimeoutSeconds <= 0)
+        {
+            networkTimeoutSeconds = 600;
+        }
+
+        var clientOptions = new AIProjectClientOptions
+        {
+            NetworkTimeout = TimeSpan.FromSeconds(networkTimeoutSeconds)
+        };
+
+        _projectClient = new AIProjectClient(new Uri(endpoint), credential, clientOptions);
+        _logger.LogInformation(
+            "Configured AIProjectClient network timeout: {TimeoutSeconds}s",
+            networkTimeoutSeconds);
         _logger.LogInformation("AIProjectClient initialized successfully");
     }
 
@@ -181,18 +195,28 @@ public class AgentFrameworkService : IDisposable
 
         CreateResponseOptions options = new() { StreamingEnabled = true };
 
-        // If continuing from MCP approval, link to previous response
-        if (!string.IsNullOrEmpty(previousResponseId) && mcpApproval != null)
+        // If continuing from MCP approval, send approval input item.
+        // previousResponseId is optional in conversation-scoped flows.
+        if (mcpApproval != null)
         {
-            options.PreviousResponseId = previousResponseId;
             options.InputItems.Add(ResponseItem.CreateMcpApprovalResponseItem(
                 mcpApproval.ApprovalRequestId,
                 mcpApproval.Approved));
+
+            // Conversation-scoped responses already carry conversation context.
+            // Sending PreviousResponseId together with conversation context causes
+            // invalid_payload errors from the Responses API.
+            if (string.IsNullOrWhiteSpace(conversationId))
+            {
+                options.PreviousResponseId = previousResponseId;
+            }
             
             _logger.LogInformation(
-                "Resuming with MCP approval: RequestId={RequestId}, Approved={Approved}",
+                "Resuming with MCP approval: RequestId={RequestId}, Approved={Approved}, HasPreviousResponseId={HasPreviousResponseId}, UsingPreviousResponseId={UsingPreviousResponseId}",
                 mcpApproval.ApprovalRequestId,
-                mcpApproval.Approved);
+                mcpApproval.Approved,
+                !string.IsNullOrWhiteSpace(previousResponseId),
+                string.IsNullOrWhiteSpace(conversationId));
         }
         else
         {

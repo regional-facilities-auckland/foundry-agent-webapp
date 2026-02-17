@@ -376,7 +376,7 @@ export class ChatService {
                   type: 'CHAT_MCP_APPROVAL_REQUEST',
                   messageId,
                   approvalRequest: event.data.approvalRequest,
-                  previousResponseId: newConversationId,
+                  previousResponseId: event.data.approvalRequest.previousResponseId ?? null,
                 });
               }
               break;
@@ -444,7 +444,7 @@ export class ChatService {
   async sendMcpApproval(
     approvalRequestId: string,
     approved: boolean,
-    previousResponseId: string,
+    previousResponseId: string | null,
     conversationId: string,
     agentId?: string
   ): Promise<void> {
@@ -462,15 +462,26 @@ export class ChatService {
       this.currentStreamAbort = new AbortController();
       this.streamCancelled = false;
 
-      const requestBody = {
+      const requestBody: {
+        message: string;
+        conversationId: string;
+        previousResponseId?: string;
+        mcpApproval: {
+          approvalRequestId: string;
+          approved: boolean;
+        };
+      } = {
         message: approved ? 'Approved' : 'Rejected',
         conversationId,
-        previousResponseId,
         mcpApproval: {
           approvalRequestId,
           approved,
         },
       };
+
+      if (previousResponseId && previousResponseId.trim().length > 0) {
+        requestBody.previousResponseId = previousResponseId;
+      }
 
       const response = await retryWithBackoff(
         async () =>
