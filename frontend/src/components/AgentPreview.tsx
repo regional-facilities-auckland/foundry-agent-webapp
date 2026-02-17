@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChatInterface } from './ChatInterface';
 import { SettingsPanel } from './core/SettingsPanel';
 import { useAppState } from '../hooks/useAppState';
@@ -20,6 +20,7 @@ export const AgentPreview: React.FC<AgentPreviewProps> = ({ agentId, agentName, 
   const { dispatch } = useAppContext();
   const { getAccessToken } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const previousAgentIdRef = useRef<string | null>(null);
 
   // Create service instances
   const apiUrl = import.meta.env.VITE_API_URL || '/api';
@@ -27,6 +28,15 @@ export const AgentPreview: React.FC<AgentPreviewProps> = ({ agentId, agentName, 
   const chatService = useMemo(() => {
     return new ChatService(apiUrl, getAccessToken, dispatch);
   }, [apiUrl, getAccessToken, dispatch]);
+
+  useEffect(() => {
+    if (previousAgentIdRef.current && previousAgentIdRef.current !== agentId) {
+      chatService.cancelStream();
+      chatService.clearChat();
+    }
+
+    previousAgentIdRef.current = agentId;
+  }, [agentId, chatService]);
 
   const handleSendMessage = async (text: string, files?: File[]) => {
     await chatService.sendMessage(text, chat.currentConversationId, files, agentId);

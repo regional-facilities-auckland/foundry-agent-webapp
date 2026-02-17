@@ -5,6 +5,7 @@ import { Navbar } from './components/core/Navbar';
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { IAgentMetadata } from "./types/chat";
 import { useAgentMappings } from "./hooks/useAgentMappings";
+import { useAppContext } from './contexts/AppContext';
 import "./App.css";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   const [isLoadingAgent, setIsLoadingAgent] = useState(true);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { agentMappings, isLoading: isLoadingMappings } = useAgentMappings();
+  const { dispatch } = useAppContext();
   const hasInitialized = useRef(false);
 
   // Wrap fetchAgentMetadata in useCallback to make it stable for the effect
@@ -75,9 +77,15 @@ function App() {
 
   // Handle area change from Navbar
   const handleAgentChange = useCallback((areaValue: string, agentId: string) => {
+    if (agentId === selectedAgentId) {
+      return;
+    }
+
     console.log(`Area changed to: ${areaValue}, loading agent: ${agentId}`);
+    dispatch({ type: 'CHAT_CLEAR' });
+    setSelectedAgentId(agentId);
     fetchAgentMetadata(agentId);
-  }, [fetchAgentMetadata]);
+  }, [dispatch, fetchAgentMetadata, selectedAgentId]);
 
   return (
     <ErrorBoundary>
@@ -95,7 +103,11 @@ function App() {
         </div>
       ) : agentMetadata ? (
         <div className="app-container">
-          <Navbar agentMappings={agentMappings} onAgentChange={handleAgentChange} />
+          <Navbar
+            agentMappings={agentMappings}
+            selectedAgentId={selectedAgentId}
+            onAgentChange={handleAgentChange}
+          />
 
           <div className="main-content">
             <AgentPreview 
