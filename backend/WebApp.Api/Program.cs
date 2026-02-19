@@ -102,7 +102,7 @@ const string RequiredScope = "Chat.ReadWrite";
 const string ScopePolicyName = "RequireChatScope";
 
 // Only add JWT authentication in Production mode
-// In Development, we skip authentication to allow service principal-based access
+// In Development, we skip authentication to simplify local testing
 if (!builder.Environment.IsDevelopment())
 {
     // Add Microsoft Identity Web authentication

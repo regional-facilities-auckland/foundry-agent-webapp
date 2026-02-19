@@ -26,7 +26,9 @@ Subscription (deployment scope)
 └── Log Analytics Workspace
 
 RBAC Assignment (via Azure CLI in postprovision.ps1):
-└── Container App Identity → Cognitive Services User on AI Foundry resource
+└── Container App Identity → AI Foundry project permissions
+  ├── Cognitive Services User (account scope)
+  └── Azure AI Project Manager (project scope; required for `/api/projects/.../openai/responses`)
 ```
 
 ## Files
@@ -45,7 +47,7 @@ RBAC Assignment (via Azure CLI in postprovision.ps1):
 - **Unique Naming**: `uniqueString()` prevents naming conflicts
 - **Scale-to-Zero**: Container App scales down when idle (cost savings)
 - **Managed Identity**: System-assigned identity for Azure resource access
-- **RBAC Automation**: Auto-assigns "Cognitive Services User" role to AI Foundry
+- **RBAC Automation**: Assigns required account + project roles for Responses API
 
 ## Deployment
 
@@ -85,6 +87,21 @@ az deployment sub create \
 | `entraTenantId` | `tenant().tenantId` | Entra tenant ID (auto-detected or from azd) |
 | `aiAgentEndpoint` | (from azd) | AI Agent endpoint URL |
 | `aiAgentId` | (from azd) | Agent name |
+| `aiAgentApimSubscriptionKey` | (from azd, optional) | APIM key used as `api-key` header |
+
+## Known Auth Requirement (Responses API)
+
+If `conversations` calls succeed but `responses` calls return `403`, the identity usually has account-level access but is missing project-level permission.
+
+Required minimum roles:
+
+- `Cognitive Services User` on the AI Foundry **account** scope
+- `Azure AI Project Manager` on the AI Foundry **project** scope (`.../accounts/<account>/projects/<project>`)
+
+This applies to every runtime identity that calls the project contract, including:
+
+- Container App managed identity (direct calls)
+- APIM managed identity (when APIM is the caller to Foundry)
 
 ## Outputs
 
@@ -130,7 +147,7 @@ Estimated monthly cost: **$10-15** (varies by usage).
 - ✅ System-assigned managed identity (no secrets in configuration)
 - ✅ Private container registry (ACR)
 - ✅ HTTPS-only ingress
-- ✅ Least-privilege RBAC (Cognitive Services User role only)
+- ✅ Least-privilege RBAC for project contract (`Cognitive Services User` + `Azure AI Project Manager`)
 - ✅ No public IP addresses
 
 ## Troubleshooting
@@ -139,6 +156,7 @@ Estimated monthly cost: **$10-15** (varies by usage).
 |-------|----------|
 | Deployment fails | Check `az deployment sub show -n <deployment-name>` |
 | RBAC not working | Verify `WEB_IDENTITY_PRINCIPAL_ID` has role on AI Foundry resource |
+| `responses` returns 403 while `conversations` returns 200 | Add `Azure AI Project Manager` on AI Foundry project scope for runtime identity |
 | Scale-to-zero not working | Check HTTP/TCP health probes (must succeed) |
 | Name conflicts | Change `environmentName` parameter |
 

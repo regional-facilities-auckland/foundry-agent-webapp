@@ -20,7 +20,7 @@ All hooks now start a PowerShell transcript automatically and write logs to `.az
 | Hook | Purpose | Key Actions | Outputs |
 |------|---------|-------------|---------|
 | **preprovision.ps1** | Create Entra app + discover AI Foundry + generate config | • Discovers AI Foundry resources<br>• Creates Entra SPA app<br>• Generates `.env` files | `.env` and `.env.local` files |
-| **postprovision.ps1** | Configure Entra + RBAC | • Updates redirect URIs with production URL<br>• Assigns Cognitive Services User role to AI Foundry | Configured Entra app + RBAC |
+| **postprovision.ps1** | Configure Entra + RBAC | • Updates redirect URIs with production URL<br>• Assigns required AI Foundry account + project roles for chat responses | Configured Entra app + RBAC |
 | **predeploy.ps1** | Build container image | • Detects Docker availability<br>• Local Docker build + push OR ACR cloud build<br>• Updates Container App if it exists | Container image in ACR |
 | **postdown.ps1** | Cleanup (optional) | • Removes RBAC assignment<br>• Deletes Entra app<br>• Optionally removes Docker images | Clean slate |
 
@@ -81,6 +81,25 @@ azd up
 | AI Foundry not found | Create resource at https://ai.azure.com |
 | Multiple AI Foundry resources | Set `AI_FOUNDRY_RESOURCE_NAME` or select when prompted |
 | RBAC assignment fails | Verify you have User Access Administrator role on AI Foundry resource |
+| `responses` returns 403 (but `conversations` works) | Ensure runtime identity has `Azure AI Project Manager` on project scope (`.../accounts/<account>/projects/<project>`) |
+
+### RBAC Baseline for Project Contract
+
+When using the project endpoints (`/api/projects/<project>/openai/...`), assign both:
+
+- `Cognitive Services User` on AI Foundry account scope
+- `Azure AI Project Manager` on AI Foundry project scope
+
+If APIM is in front of Foundry and uses managed identity outbound auth, assign these roles to the APIM managed identity and avoid duplicate Foundry roles on backend/web identities.
+
+### APIM-Only Runtime Identity Mode
+
+When `AI_AGENT_ENDPOINT` is an APIM endpoint (`*.azure-api.net`), `postprovision.ps1` now:
+
+- Assigns required Foundry roles to APIM managed identity
+- Removes overlapping Foundry-scope role assignments from web app identity and local service principal
+
+This keeps a single runtime caller identity to Foundry and reduces role sprawl.
 
 ### App Registration Policies
 

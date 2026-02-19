@@ -200,6 +200,17 @@ azd deploy  # 3-5 minutes
 **Deployment**: Single container, Azure Container Apps  
 **Local Dev**: Native (no Docker required)
 
+### Responses API Authorization Note
+
+For Azure AI Foundry project contract calls (`/api/projects/<project>/openai/responses`), `Cognitive Services User` alone is not sufficient in some environments.
+
+Deployment baseline:
+
+- `Cognitive Services User` on AI Foundry account scope
+- `Azure AI Project Manager` on AI Foundry project scope
+
+Symptom of missing project scope permission: `conversations` succeeds but `responses` returns `403`.
+
 ### Known Limitations
 
 - **Office Documents**: DOCX, PPTX, and XLSX files are not supported for upload. Use PDF, images, or plain text files instead.

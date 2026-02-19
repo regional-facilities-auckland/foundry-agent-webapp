@@ -50,25 +50,11 @@ public class AgentFrameworkService : IDisposable
 
         if (environment == "Development")
         {
-            // In Development, try service principal first, then fall back to CLI credentials
-            var clientId = configuration["AZURE_CLIENT_ID"];
-            var tenantId = configuration["AZURE_TENANT_ID"];
-            var clientSecret = configuration["AZURE_CLIENT_SECRET"];
-
-            if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(tenantId) && !string.IsNullOrEmpty(clientSecret))
-            {
-                _logger.LogInformation("Development: Using ClientSecretCredential (Service Principal)");
-                credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            }
-            else
-            {
-                _logger.LogInformation("Development: Using ChainedTokenCredential (AzureCli -> AzureDeveloperCli). " +
-                    "To use service principal, set AZURE_CLIENT_ID, AZURE_TENANT_ID, and AZURE_CLIENT_SECRET");
-                credential = new ChainedTokenCredential(
-                    new AzureCliCredential(),
-                    new AzureDeveloperCliCredential()
-                );
-            }
+            _logger.LogInformation("Development: Using ChainedTokenCredential (AzureCli -> AzureDeveloperCli)");
+            credential = new ChainedTokenCredential(
+                new AzureCliCredential(),
+                new AzureDeveloperCliCredential()
+            );
         }
         else
         {
