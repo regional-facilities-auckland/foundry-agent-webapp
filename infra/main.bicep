@@ -16,6 +16,10 @@ param aiAgentEndpoint string = ''
 @description('AI Agent ID (configured via azd env set AI_AGENT_ID)')
 param aiAgentId string = ''
 
+@secure()
+@description('Optional APIM subscription key used when AI_AGENT_ENDPOINT points to Azure API Management')
+param aiAgentApimSubscriptionKey string = ''
+
 @description('Entra ID Client ID (set by azd hook)')
 param entraSpaClientId string = ''
 
@@ -66,6 +70,7 @@ module app 'main-app.bicep' = {
     containerRegistryName: infrastructure.outputs.containerRegistryName
     aiAgentEndpoint: aiAgentEndpoint
     aiAgentId: aiAgentId
+    aiAgentApimSubscriptionKey: aiAgentApimSubscriptionKey
     entraSpaClientId: entraSpaClientId
     entraTenantId: entraTenantId
     webImageName: webImageName

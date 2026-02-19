@@ -147,6 +147,11 @@ azd env set AI_AGENT_ID <agent-name>
 # No provision needed - RBAC already grants access to all agents in the resource
 ```
 
+**If using an APIM endpoint** (`*.azure-api.net`), set the key used by backend requests:
+```powershell
+azd env set AI_AGENT_APIM_SUBSCRIPTION_KEY <apim-subscription-key>
+```
+
 > 💡 `azd provision` (or `azd up`) automatically regenerates `.env` files and updates RBAC assignments when configuration changes.
 
 ## Development Workflow

@@ -5,6 +5,8 @@ param containerAppsEnvironmentId string
 param containerRegistryName string
 param aiAgentEndpoint string
 param aiAgentId string
+@secure()
+param aiAgentApimSubscriptionKey string
 param entraSpaClientId string
 param entraTenantId string
 param webImageName string
@@ -46,6 +48,10 @@ module webApp './core/host/container-app.bicep' = {
       {
         name: 'AI_AGENT_ID'
         value: aiAgentId
+      }
+      {
+        name: 'AI_AGENT_APIM_SUBSCRIPTION_KEY'
+        value: aiAgentApimSubscriptionKey
       }
     ]
     enableIngress: true

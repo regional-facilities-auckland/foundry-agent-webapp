@@ -22,6 +22,9 @@
     },
     "aiAgentId": {
       "value": "${AI_AGENT_ID=}"
+    },
+    "aiAgentApimSubscriptionKey": {
+      "value": "${AI_AGENT_APIM_SUBSCRIPTION_KEY=}"
     }
   }
 }

@@ -5,6 +5,8 @@ using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using OpenAI.Responses;
+using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Runtime.CompilerServices;
 using WebApp.Api.Models;
 
@@ -84,6 +86,30 @@ public class AgentFrameworkService : IDisposable
         {
             NetworkTimeout = TimeSpan.FromSeconds(networkTimeoutSeconds)
         };
+
+        var apimSubscriptionKey = configuration["AI_AGENT_APIM_SUBSCRIPTION_KEY"]
+            ?? configuration["APIM_SUBSCRIPTION_KEY"];
+
+        if (!string.IsNullOrWhiteSpace(apimSubscriptionKey))
+        {
+            var apimPolicy = ApiKeyAuthenticationPolicy.CreateHeaderApiKeyPolicy(
+                credential: new ApiKeyCredential(apimSubscriptionKey),
+                headerName: "api-key",
+                keyPrefix: null);
+
+            clientOptions.AddPolicy(
+                apimPolicy,
+                PipelinePosition.PerCall);
+
+            _logger.LogInformation(
+                "Configured APIM subscription key policy for AI agent endpoint");
+        }
+        else if (endpoint.Contains(".azure-api.net", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning(
+                "AI_AGENT_ENDPOINT appears to use APIM, but no subscription key is configured. " +
+                "Set AI_AGENT_APIM_SUBSCRIPTION_KEY (or APIM_SUBSCRIPTION_KEY) to avoid 401 errors.");
+        }
 
         _projectClient = new AIProjectClient(new Uri(endpoint), credential, clientOptions);
         _logger.LogInformation(

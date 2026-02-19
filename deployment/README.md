@@ -38,6 +38,7 @@ This is handled automatically by `predeploy.ps1`.
 | `azd up` | Full provision + deploy | Initial setup, infrastructure changes |
 | `azd deploy` | Code-only deployment | Fast iteration on code changes |
 | `azd down` | Tear down resources | Cleanup |
+| `azd env set AI_AGENT_APIM_SUBSCRIPTION_KEY <key>` | Configure APIM key for backend `api-key` header | When `AI_AGENT_ENDPOINT` uses `.azure-api.net` |
 
 ## Hook Workflow
 

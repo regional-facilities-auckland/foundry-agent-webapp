@@ -161,6 +161,7 @@ if ([string]::IsNullOrWhiteSpace($agentId)) {
 # Create local dev config files
 $aiAgentEndpoint = (azd env get-value AI_AGENT_ENDPOINT 2>&1) | Where-Object { $_ -notmatch 'ERROR' } | Select-Object -First 1
 $aiAgentId = (azd env get-value AI_AGENT_ID 2>&1) | Where-Object { $_ -notmatch 'ERROR' } | Select-Object -First 1
+$aiAgentApimSubscriptionKey = (azd env get-value AI_AGENT_APIM_SUBSCRIPTION_KEY 2>&1) | Where-Object { $_ -notmatch 'ERROR' } | Select-Object -First 1
 
 # Frontend .env.local
 @"
@@ -178,6 +179,7 @@ AzureAd__ClientId=$clientId
 AzureAd__Audience=api://$clientId
 AI_AGENT_ENDPOINT=$aiAgentEndpoint
 AI_AGENT_ID=$aiAgentId
+AI_AGENT_APIM_SUBSCRIPTION_KEY=$aiAgentApimSubscriptionKey
 "@ | Out-File -FilePath "backend/WebApp.Api/.env" -Encoding utf8 -Force
 
 Write-Host "[OK] Local dev config created" -ForegroundColor Green

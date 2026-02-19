@@ -64,9 +64,15 @@ AzureAd__ClientId=...
 AzureAd__TenantId=...
 AI_AGENT_ENDPOINT=...
 AI_AGENT_ID=...
+AI_AGENT_APIM_SUBSCRIPTION_KEY=... # Required when using APIM endpoint (.azure-api.net)
 ```
 
 Environment variables are loaded before ASP.NET Core configuration builder runs.
+
+When using an APIM endpoint (`*.azure-api.net`), set the key in your azd environment:
+```powershell
+azd env set AI_AGENT_APIM_SUBSCRIPTION_KEY <key>
+```
 
 ## API Endpoints
 
@@ -128,7 +134,8 @@ dotnet list package --vulnerable
 | Issue | Solution |
 |-------|----------|
 | 401 Unauthorized | Verify token has `Chat.ReadWrite` scope |
-| AI Foundry connection fails | Check `AI_AGENT_ENDPOINT` in `.env` |
+| Access denied due to missing subscription key | Set `AI_AGENT_APIM_SUBSCRIPTION_KEY` when `AI_AGENT_ENDPOINT` uses `.azure-api.net` |
+| AI Foundry connection fails | Check `AI_AGENT_ENDPOINT` and `AI_AGENT_ID` in `.env` |
 | Local auth fails | Run `az login` or `azd auth login` |
 | Port 8080 in use | Change in `launchSettings.json` |
 

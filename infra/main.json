@@ -38,6 +38,13 @@
         "description": "AI Agent ID (configured via azd env set AI_AGENT_ID)"
       }
     },
+    "aiAgentApimSubscriptionKey": {
+      "type": "secureString",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional APIM subscription key used when AI_AGENT_ENDPOINT points to Azure API Management"
+      }
+    },
     "deploymentTimestamp": {
       "type": "string",
       "defaultValue": "[utcNow()]",
@@ -438,6 +445,9 @@
           "aiAgentId": {
             "value": "[parameters('aiAgentId')]"
           },
+          "aiAgentApimSubscriptionKey": {
+            "value": "[parameters('aiAgentApimSubscriptionKey')]"
+          },
           "entraSpaClientId": {
             "value": "[parameters('entraSpaClientId')]"
           },
@@ -479,6 +489,9 @@
             },
             "aiAgentId": {
               "type": "string"
+            },
+            "aiAgentApimSubscriptionKey": {
+              "type": "secureString"
             },
             "entraSpaClientId": {
               "type": "string"
@@ -557,6 +570,10 @@
                       {
                         "name": "AI_AGENT_ID",
                         "value": "[parameters('aiAgentId')]"
+                      },
+                      {
+                        "name": "AI_AGENT_APIM_SUBSCRIPTION_KEY",
+                        "value": "[parameters('aiAgentApimSubscriptionKey')]"
                       }
                     ]
                   },

@@ -30,6 +30,9 @@
     "aiAgentId": {
       "type": "string"
     },
+    "aiAgentApimSubscriptionKey": {
+      "type": "secureString"
+    },
     "entraSpaClientId": {
       "type": "string"
     },
@@ -107,6 +110,10 @@
               {
                 "name": "AI_AGENT_ID",
                 "value": "[parameters('aiAgentId')]"
+              },
+              {
+                "name": "AI_AGENT_APIM_SUBSCRIPTION_KEY",
+                "value": "[parameters('aiAgentApimSubscriptionKey')]"
               }
             ]
           },

@@ -100,6 +100,7 @@ Frontend                    Backend                     AI Foundry
 | `VITE_ENTRA_TENANT_ID` | frontend/.env.local | Azure tenant |
 | `AI_AGENT_ENDPOINT` | .azure/{env}/.env | AI Foundry project URL |
 | `AI_AGENT_ID` | .azure/{env}/.env | Agent name (human-readable) |
+| `AI_AGENT_APIM_SUBSCRIPTION_KEY` | .azure/{env}/.env | Optional APIM key (sent as `api-key` header) |
 
 **Regenerate all**: Run `azd up`
 
