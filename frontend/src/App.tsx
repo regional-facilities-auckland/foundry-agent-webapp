@@ -12,7 +12,7 @@ function App() {
   const [agentMetadata, setAgentMetadata] = useState<IAgentMetadata | null>(null);
   const [isLoadingAgent, setIsLoadingAgent] = useState(true);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  const { agentMappings, isLoading: isLoadingMappings } = useAgentMappings();
+  const { agentMappings, isLoading: isLoadingMappings, isMaoriOutcomesAgent } = useAgentMappings();
   const { dispatch } = useAppContext();
   const hasInitialized = useRef(false);
 
@@ -116,6 +116,7 @@ function App() {
               agentDescription={agentMetadata.metadata?.description || agentMetadata.description || undefined}
               agentLogo={agentMetadata.metadata?.logo}
               starterPrompts={agentMetadata.starterPrompts || undefined}
+              showMaoriAgentImage={isMaoriOutcomesAgent(selectedAgentId || agentMetadata.id)}
             />
           </div>
         </div>

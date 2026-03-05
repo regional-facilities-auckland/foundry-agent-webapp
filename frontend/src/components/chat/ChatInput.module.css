@@ -3,6 +3,7 @@
   background: transparent;
   width: 100%;
   max-width: 900px;
+  box-sizing: border-box;
   margin: 0 auto;
   flex-shrink: 0;
   position: relative;

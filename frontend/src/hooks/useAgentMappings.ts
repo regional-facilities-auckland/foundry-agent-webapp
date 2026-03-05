@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 
 const apiUrl = import.meta.env.VITE_API_URL || '/api';
@@ -14,6 +14,27 @@ export const useAgentMappings = () => {
   const [agentMappings, setAgentMappings] = useState<AgentMapping[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const getAgentMappingById = useCallback((agentId?: string | null) => {
+    if (!agentId) {
+      return undefined;
+    }
+
+    return agentMappings.find((mapping) => mapping.agentId === agentId);
+  }, [agentMappings]);
+
+  const isMaoriOutcomesAgent = useCallback((agentId?: string | null) => {
+    const mapping = getAgentMappingById(agentId);
+
+    if (!mapping) {
+      return false;
+    }
+
+    const value = mapping.value.toLowerCase();
+    const label = mapping.label.toLowerCase();
+
+    return value.includes('maori-outcomes') || label.includes('maori outcomes');
+  }, [getAgentMappingById]);
 
   useEffect(() => {
     let isMounted = true;
@@ -61,5 +82,5 @@ export const useAgentMappings = () => {
     };
   }, [getAccessToken]);
 
-  return { agentMappings, isLoading, error };
+  return { agentMappings, isLoading, error, getAgentMappingById, isMaoriOutcomesAgent };
 };

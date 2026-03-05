@@ -14,3 +14,49 @@
   position: relative;
   overflow: hidden;
 }
+
+.chatPane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.agentImagePanel {
+  flex: 0 0 24rem;
+  max-width: 20rem;
+  min-width: 15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #00303c;
+}
+
+.agentImageContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.agentImage {
+  width: 100%;
+  height: auto;
+  max-height: calc(100% - 2.25rem);
+  object-fit: contain;
+  display: block;
+}
+
+.agentImageTitle {
+  margin: 0.75rem 0 0;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (max-width: 60rem) {
+  .agentImagePanel {
+    display: none;
+  }
+}
